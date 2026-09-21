@@ -43,7 +43,7 @@ export class QuizzesController {
   @ApiCreatedResponse({ type: QuizDetailDto })
   @ApiBadRequestResponse({ description: 'Validation failed' })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
-  create(@Body() dto: CreateQuizDto, @CurrentUserId() userId: number) {
+  create(@Body() dto: CreateQuizDto, @CurrentUserId() userId: string) {
     return this.quizzesService.create(dto, userId);
   }
 
@@ -72,7 +72,7 @@ export class QuizzesController {
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({ description: 'The quiz belongs to another user' })
   @ApiNotFoundResponse({ description: 'Quiz not found' })
-  findOneForEdit(@Param('id', ParseIntPipe) id: number, @CurrentUserId() userId: number) {
+  findOneForEdit(@Param('id', ParseIntPipe) id: number, @CurrentUserId() userId: string) {
     return this.quizzesService.findOneForEdit(id, userId);
   }
 
@@ -89,7 +89,7 @@ export class QuizzesController {
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() dto: CreateQuizDto,
-    @CurrentUserId() userId: number,
+    @CurrentUserId() userId: string,
   ) {
     return this.quizzesService.update(id, dto, userId);
   }
@@ -104,7 +104,7 @@ export class QuizzesController {
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiForbiddenResponse({ description: 'The quiz belongs to another user' })
   @ApiNotFoundResponse({ description: 'Quiz not found' })
-  remove(@Param('id', ParseIntPipe) id: number, @CurrentUserId() userId: number) {
+  remove(@Param('id', ParseIntPipe) id: number, @CurrentUserId() userId: string) {
     return this.quizzesService.remove(id, userId);
   }
 }

@@ -32,7 +32,7 @@ export class ProfileController {
   @Get()
   @ApiOperation({ summary: 'Profile of the current user with activity stats' })
   @ApiOkResponse({ type: ProfileDto })
-  async getProfile(@CurrentUserId() userId: number): Promise<ProfileDto> {
+  async getProfile(@CurrentUserId() userId: string): Promise<ProfileDto> {
     const [user, quizzesCreated, attemptStats] = await Promise.all([
       this.usersService.findOne(userId),
       this.quizzesService.countByUser(userId),
@@ -50,14 +50,14 @@ export class ProfileController {
   @Get('quizzes')
   @ApiOperation({ summary: 'Quizzes created by the current user' })
   @ApiOkResponse({ type: [QuizSummaryDto] })
-  getCreatedQuizzes(@CurrentUserId() userId: number) {
+  getCreatedQuizzes(@CurrentUserId() userId: string) {
     return this.quizzesService.findAll(userId);
   }
 
   @Get('attempts')
   @ApiOperation({ summary: 'History of quizzes the current user has taken, newest first' })
   @ApiOkResponse({ type: [AttemptSummaryDto] })
-  getAttempts(@CurrentUserId() userId: number) {
+  getAttempts(@CurrentUserId() userId: string) {
     return this.attemptsService.findAllForUser(userId);
   }
 
@@ -66,7 +66,7 @@ export class ProfileController {
   @ApiParam({ name: 'id', example: 1 })
   @ApiOkResponse({ type: AttemptDetailDto })
   @ApiNotFoundResponse({ description: 'Attempt not found' })
-  getAttempt(@Param('id', ParseIntPipe) id: number, @CurrentUserId() userId: number) {
+  getAttempt(@Param('id', ParseIntPipe) id: number, @CurrentUserId() userId: string) {
     return this.attemptsService.findOneForUser(id, userId);
   }
 }

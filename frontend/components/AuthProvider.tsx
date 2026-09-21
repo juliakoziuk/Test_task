@@ -7,7 +7,7 @@ import {
   useMemo,
   useState,
 } from 'react';
-import { authApi, tokenStore } from '../services/api';
+import { authApi, tokenStore, userStore } from '../services/api';
 import type { AuthResponse, User } from '../types/quiz';
 
 interface AuthState {
@@ -26,23 +26,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!tokenStore.get()) {
+      userStore.clear();
       setReady(true);
       return;
     }
+    // show the cached user right away, then confirm it with the server
+    const cached = userStore.get();
+    if (cached) {
+      setUser(cached);
+      setReady(true);
+    }
     authApi
       .me()
-      .then(setUser)
-      .catch(() => tokenStore.clear())
+      .then((me) => {
+        userStore.set(me);
+        setUser(me);
+      })
+      .catch(() => {
+        tokenStore.clear();
+        userStore.clear();
+        setUser(null);
+      })
       .finally(() => setReady(true));
   }, []);
 
   const signIn = useCallback((auth: AuthResponse) => {
-    tokenStore.set(auth.accessToken);
+    tokenStore.set(auth);
+    userStore.set(auth.user);
     setUser(auth.user);
   }, []);
 
   const signOut = useCallback(() => {
+    // Revoke the session server-side; the local state is cleared regardless of the outcome.
+    authApi.logout().catch(() => undefined);
     tokenStore.clear();
+    userStore.clear();
     setUser(null);
   }, []);
 

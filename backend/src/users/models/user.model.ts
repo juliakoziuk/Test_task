@@ -14,6 +14,9 @@ import { Quiz } from '../../quizzes/models/quiz.model';
 @Scopes(() => ({ withPassword: {} }))
 @Table({ tableName: 'users' })
 export class User extends Model {
+  @Column({ type: DataType.UUID, defaultValue: DataType.UUIDV4, primaryKey: true })
+  id: string;
+
   @Column({ type: DataType.STRING, allowNull: false })
   name: string;
 

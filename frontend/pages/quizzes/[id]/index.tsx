@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useAuth } from '../../../components/AuthProvider';
 import LoginModal from '../../../components/LoginModal';
-import { attemptApi, quizApi } from '../../../services/api';
-import type { AnswerValue, Attempt, Question, Quiz } from '../../../types/quiz';
+import { attemptApi } from '../../../services/api';
+import { useQuiz } from '../../../services/queries';
+import type { AnswerValue, Attempt, Question } from '../../../types/quiz';
 
 const TYPE_LABELS = { boolean: 'True / False', input: 'Short text', checkbox: 'Multiple choice' };
 
@@ -74,23 +75,14 @@ function AnswerFields({ question: q, value, onChange, disabled }: FieldsProps) {
 export default function QuizDetailPage() {
   const { query } = useRouter();
   const { user, ready } = useAuth();
-  const [quiz, setQuiz] = useState<Quiz | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const { data: quiz, error } = useQuiz(query.id as string | undefined);
   const [showLogin, setShowLogin] = useState(false);
   const [answers, setAnswers] = useState<Answers>({});
   const [result, setResult] = useState<Attempt | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!query.id) return;
-    quizApi
-      .get(query.id as string)
-      .then(setQuiz)
-      .catch((e: Error) => setError(e.message));
-  }, [query.id]);
-
-  if (error) return <p className="error">{error}</p>;
+  if (!quiz && error) return <p className="error">{error.message}</p>;
   if (!quiz) return <p className="muted">Loading…</p>;
 
   const isGuest = ready && !user;

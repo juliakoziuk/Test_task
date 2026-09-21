@@ -30,7 +30,7 @@ export class AttemptsService {
     @InjectModel(Quiz) private readonly quizModel: typeof Quiz,
   ) {}
 
-  async submit(quizId: number, userId: number, dto: SubmitAttemptDto): Promise<AttemptDetailDto> {
+  async submit(quizId: number, userId: string, dto: SubmitAttemptDto): Promise<AttemptDetailDto> {
     const quiz = await this.quizModel.findByPk(quizId, { attributes: ['id', 'title'] });
     if (!quiz) throw new NotFoundException(`Quiz ${quizId} not found`);
 
@@ -81,7 +81,7 @@ export class AttemptsService {
     return { ...toSummary(attempt, quiz.title), answers };
   }
 
-  async findAllForUser(userId: number): Promise<AttemptSummaryDto[]> {
+  async findAllForUser(userId: string): Promise<AttemptSummaryDto[]> {
     const attempts = await this.attemptModel.findAll({
       where: { userId },
       attributes: { exclude: ['answers'] },
@@ -91,7 +91,7 @@ export class AttemptsService {
     return attempts.map((a) => toSummary(a, a.quiz.title));
   }
 
-  async findOneForUser(id: number, userId: number): Promise<AttemptDetailDto> {
+  async findOneForUser(id: number, userId: string): Promise<AttemptDetailDto> {
     const attempt = await this.attemptModel.findOne({
       where: { id, userId },
       include: [{ model: Quiz, attributes: ['id', 'title'] }],
@@ -100,7 +100,7 @@ export class AttemptsService {
     return { ...toSummary(attempt, attempt.quiz.title), answers: attempt.answers };
   }
 
-  async statsForUser(userId: number): Promise<AttemptStats> {
+  async statsForUser(userId: string): Promise<AttemptStats> {
     const attempts = await this.attemptModel.findAll({
       where: { userId },
       attributes: ['score', 'total'],

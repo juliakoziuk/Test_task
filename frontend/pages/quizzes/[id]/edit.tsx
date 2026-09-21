@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import QuizForm from '../../../components/QuizForm';
 import RequireAuth from '../../../components/RequireAuth';
 import { quizApi } from '../../../services/api';
+import { refreshQuiz } from '../../../services/queries';
 import type { CreateQuizPayload, QuestionDraft, QuizForEdit } from '../../../types/quiz';
 
 /** Legacy questions have no stored correct answer: start from an empty one the owner must fill in. */
@@ -47,6 +48,7 @@ function EditContent() {
 
   const handleSubmit = async (payload: CreateQuizPayload) => {
     await quizApi.update(quiz.id, payload);
+    await refreshQuiz(quiz.id);
     await router.push(`/quizzes/${quiz.id}`);
   };
 

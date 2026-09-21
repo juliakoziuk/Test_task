@@ -40,7 +40,7 @@ export class QuizzesService {
     }));
   }
 
-  async create(dto: CreateQuizDto, userId: number): Promise<Quiz> {
+  async create(dto: CreateQuizDto, userId: string): Promise<Quiz> {
     await this.usersService.findOne(userId);
     this.assertValidQuestions(dto);
 
@@ -53,7 +53,7 @@ export class QuizzesService {
   }
 
   /** Replaces the title and all questions of one of your own quizzes. */
-  async update(id: number, dto: CreateQuizDto, userId: number): Promise<Quiz> {
+  async update(id: number, dto: CreateQuizDto, userId: string): Promise<Quiz> {
     const quiz = await this.findOne(id);
     if (quiz.userId !== userId) throw new ForbiddenException('You can only edit your own quizzes');
     this.assertValidQuestions(dto);
@@ -68,7 +68,7 @@ export class QuizzesService {
   }
 
   /** The quiz including correct answers, for its owner only (used by the edit form). */
-  async findOneForEdit(id: number, userId: number) {
+  async findOneForEdit(id: number, userId: string) {
     const quiz = await this.findOne(id);
     if (quiz.userId !== userId) throw new ForbiddenException('You can only edit your own quizzes');
     const questions = await this.questionModel.scope('withAnswers').findAll({
@@ -90,7 +90,7 @@ export class QuizzesService {
     };
   }
 
-  async findAll(userId?: number) {
+  async findAll(userId?: string) {
     const quizzes = await this.quizModel.findAll({
       where: userId ? { userId } : undefined,
       attributes: {
@@ -113,7 +113,7 @@ export class QuizzesService {
     }));
   }
 
-  countByUser(userId: number): Promise<number> {
+  countByUser(userId: string): Promise<number> {
     return this.quizModel.count({ where: { userId } });
   }
 
@@ -126,7 +126,7 @@ export class QuizzesService {
     return quiz;
   }
 
-  async remove(id: number, userId: number): Promise<void> {
+  async remove(id: number, userId: string): Promise<void> {
     const quiz = await this.findOne(id);
     if (quiz.userId !== userId)
       throw new ForbiddenException('You can only delete your own quizzes');

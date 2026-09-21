@@ -9,14 +9,14 @@ export interface Question {
 
 export interface QuizSummary {
   id: number;
-  userId: number;
+  userId: string;
   title: string;
   questionCount: number;
 }
 
 export interface Quiz {
   id: number;
-  userId: number;
+  userId: string;
   title: string;
   questions: Question[];
 }
@@ -36,13 +36,14 @@ export interface CreateQuizPayload {
 }
 
 export interface User {
-  id: number;
+  id: string;
   name: string;
   email: string;
 }
 
 export interface AuthResponse {
   accessToken: string;
+  refreshToken: string;
   user: User;
 }
 
@@ -90,7 +91,7 @@ export interface Profile extends User {
 
 export interface QuizForEdit {
   id: number;
-  userId: number;
+  userId: string;
   title: string;
   questions: (Question & { correctAnswer: AnswerValue | null })[];
 }

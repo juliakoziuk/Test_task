@@ -26,10 +26,10 @@ export class UsersService {
   }
 
   findAll(): Promise<User[]> {
-    return this.userModel.findAll({ order: [['id', 'ASC']] });
+    return this.userModel.findAll({ order: [['createdAt', 'ASC']] });
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOne(id: string): Promise<User> {
     const user = await this.userModel.findByPk(id);
     if (!user) throw new NotFoundException(`User ${id} not found`);
     return user;

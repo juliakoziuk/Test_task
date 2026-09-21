@@ -31,7 +31,7 @@ export class AttemptsController {
   @ApiNotFoundResponse({ description: 'Quiz not found' })
   submit(
     @Param('quizId', ParseIntPipe) quizId: number,
-    @CurrentUserId() userId: number,
+    @CurrentUserId() userId: string,
     @Body() dto: SubmitAttemptDto,
   ) {
     return this.attemptsService.submit(quizId, userId, dto);

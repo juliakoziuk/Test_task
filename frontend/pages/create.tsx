@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useAuth } from '../components/AuthProvider';
 import QuizForm from '../components/QuizForm';
 import { quizApi } from '../services/api';
+import { refreshQuiz } from '../services/queries';
 import type { CreateQuizPayload } from '../types/quiz';
 
 export default function CreateQuizPage() {
@@ -16,6 +17,7 @@ export default function CreateQuizPage() {
 
   const handleSubmit = async (payload: CreateQuizPayload) => {
     const quiz = await quizApi.create(payload);
+    await refreshQuiz(quiz.id);
     await router.push(`/quizzes/${quiz.id}`);
   };
 
