@@ -1,14 +1,19 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../../components/AuthProvider';
 import QuizCard from '../../components/QuizCard';
 import { quizApi } from '../../services/api';
 import type { QuizSummary } from '../../types/quiz';
 
 export default function QuizListPage() {
+  const { user } = useAuth();
   const [quizzes, setQuizzes] = useState<QuizSummary[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    quizApi.list().then(setQuizzes).catch((e: Error) => setError(e.message));
+    quizApi
+      .list()
+      .then(setQuizzes)
+      .catch((e: Error) => setError(e.message));
   }, []);
 
   const handleDelete = async (id: number) => {
@@ -16,6 +21,7 @@ export default function QuizListPage() {
     try {
       await quizApi.remove(id);
       setQuizzes((prev) => prev?.filter((q) => q.id !== id) ?? null);
+      setError(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to delete quiz.');
     }
@@ -28,7 +34,12 @@ export default function QuizListPage() {
       {quizzes === null && !error && <p className="muted">Loading…</p>}
       {quizzes?.length === 0 && <p className="muted">No quizzes yet. Create the first one!</p>}
       {quizzes?.map((quiz) => (
-        <QuizCard key={quiz.id} quiz={quiz} onDelete={handleDelete} />
+        <QuizCard
+          key={quiz.id}
+          quiz={quiz}
+          canEdit={user?.id === quiz.userId}
+          onDelete={user?.id === quiz.userId ? handleDelete : undefined}
+        />
       ))}
     </>
   );

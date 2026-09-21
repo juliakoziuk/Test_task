@@ -13,11 +13,13 @@ async function seed() {
   const users = app.get(UsersService);
   const quizzes = app.get(QuizzesService);
 
-  const user = await users.create({
-    name: 'Demo User',
-    email: DEMO_EMAIL,
-    passwordHash: await bcrypt.hash(DEMO_PASSWORD, 10),
-  });
+  const user =
+    (await users.findByEmailWithPassword(DEMO_EMAIL)) ??
+    (await users.create({
+      name: 'Demo User',
+      email: DEMO_EMAIL,
+      passwordHash: await bcrypt.hash(DEMO_PASSWORD, 10),
+    }));
 
   await quizzes.create(
     {

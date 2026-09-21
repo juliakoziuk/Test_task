@@ -1,5 +1,11 @@
 import { Controller, Get, Param, ParseIntPipe } from '@nestjs/common';
-import { ApiNotFoundResponse, ApiOkResponse, ApiOperation, ApiParam, ApiTags } from '@nestjs/swagger';
+import {
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UserResponseDto } from './dto/user-response.dto';
 import { UsersService } from './users.service';
 

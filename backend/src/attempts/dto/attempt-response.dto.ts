@@ -22,7 +22,11 @@ export class AttemptAnswerDto {
   @ApiProperty({ ...ANSWER_SCHEMA })
   correctAnswer: unknown;
 
-  @ApiProperty({ type: Boolean, nullable: true, description: 'Null when the question is not scored' })
+  @ApiProperty({
+    type: Boolean,
+    nullable: true,
+    description: 'Null when the question is not scored',
+  })
   isCorrect: boolean | null;
 }
 

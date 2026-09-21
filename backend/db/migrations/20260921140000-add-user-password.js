@@ -9,7 +9,9 @@ module.exports = {
     });
 
     // Users created before auth existed get an unusable hash: they cannot log in.
-    await queryInterface.sequelize.query(`UPDATE users SET "passwordHash" = '!' WHERE "passwordHash" IS NULL`);
+    await queryInterface.sequelize.query(
+      `UPDATE users SET "passwordHash" = '!' WHERE "passwordHash" IS NULL`,
+    );
 
     await queryInterface.changeColumn('users', 'passwordHash', {
       type: Sequelize.STRING,

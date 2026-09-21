@@ -1,4 +1,12 @@
-import { Column, DataType, DefaultScope, HasMany, Model, Scopes, Table } from 'sequelize-typescript';
+import {
+  Column,
+  DataType,
+  DefaultScope,
+  HasMany,
+  Model,
+  Scopes,
+  Table,
+} from 'sequelize-typescript';
 import { Quiz } from '../../quizzes/models/quiz.model';
 
 // The password hash is hidden by default; use `User.scope('withPassword')` to load it.

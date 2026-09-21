@@ -24,7 +24,9 @@ export class AttemptsController {
   @Post()
   @ApiOperation({ summary: 'Submit answers to a quiz; returns the graded attempt' })
   @ApiCreatedResponse({ type: AttemptDetailDto })
-  @ApiBadRequestResponse({ description: 'Unknown question, duplicate answer or wrong answer format' })
+  @ApiBadRequestResponse({
+    description: 'Unknown question, duplicate answer or wrong answer format',
+  })
   @ApiUnauthorizedResponse({ description: 'Missing or invalid token' })
   @ApiNotFoundResponse({ description: 'Quiz not found' })
   submit(

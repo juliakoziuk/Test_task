@@ -52,3 +52,26 @@ export class QuizDetailDto {
   @ApiProperty({ type: [QuestionResponseDto] })
   questions: QuestionResponseDto[];
 }
+
+export class QuestionEditDto extends QuestionResponseDto {
+  @ApiProperty({
+    oneOf: [{ type: 'boolean' }, { type: 'string' }, { type: 'array', items: { type: 'string' } }],
+    nullable: true,
+    description: 'Null for legacy questions created before grading existed',
+  })
+  correctAnswer: boolean | string | string[] | null;
+}
+
+export class QuizEditDto {
+  @ApiProperty({ example: 1 })
+  id: number;
+
+  @ApiProperty({ example: 1 })
+  userId: number;
+
+  @ApiProperty({ example: 'JavaScript Basics' })
+  title: string;
+
+  @ApiProperty({ type: [QuestionEditDto] })
+  questions: QuestionEditDto[];
+}

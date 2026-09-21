@@ -1,77 +1,82 @@
-import { FormEvent, useState } from 'react';
-import type { CreateQuizPayload, Question } from '../types/quiz';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useState } from 'react';
+import { FormProvider, useFieldArray, useForm } from 'react-hook-form';
+import { QuizFormValues, quizSchema } from '../schemas/quiz';
+import type { CreateQuizPayload } from '../types/quiz';
 import QuestionEditor from './QuestionEditor';
 
 interface Props {
   onSubmit: (payload: CreateQuizPayload) => Promise<void>;
+  /** prefill when editing an existing quiz */
+  initial?: CreateQuizPayload;
+  submitLabel?: string;
 }
 
-const emptyQuestion = (): Question => ({ text: '', type: 'boolean', options: [] });
+const emptyQuestion = (): QuizFormValues['questions'][number] => ({
+  text: '',
+  type: 'boolean',
+  options: [],
+  correctAnswer: true,
+});
 
-function validate(title: string, questions: Question[]): string | null {
-  if (!title.trim()) return 'Quiz title is required.';
-  if (questions.length === 0) return 'Add at least one question.';
-  for (const [i, q] of questions.entries()) {
-    if (!q.text.trim()) return `Question ${i + 1} needs text.`;
-    if (q.type === 'checkbox' && q.options.some((o) => !o.trim())) {
-      return `Question ${i + 1} has an empty option.`;
-    }
-  }
-  return null;
-}
+export default function QuizForm({ onSubmit, initial, submitLabel = 'Create quiz' }: Props) {
+  const form = useForm<QuizFormValues>({
+    resolver: zodResolver(quizSchema),
+    mode: 'onTouched',
+    defaultValues: initial ?? { title: '', questions: [emptyQuestion()] },
+  });
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting },
+  } = form;
+  const { fields, append, remove } = useFieldArray({ control, name: 'questions' });
+  const [serverError, setServerError] = useState<string | null>(null);
 
-export default function QuizForm({ onSubmit }: Props) {
-  const [title, setTitle] = useState('');
-  const [questions, setQuestions] = useState<Question[]>([emptyQuestion()]);
-  const [error, setError] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    const problem = validate(title, questions);
-    if (problem) return setError(problem);
-
-    setError(null);
-    setSaving(true);
+  // the resolver returns trimmed values, so what is sent matches what was validated
+  const submit = handleSubmit(async (values) => {
+    setServerError(null);
     try {
-      await onSubmit({ title: title.trim(), questions });
+      await onSubmit(values);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong.');
-      setSaving(false);
+      setServerError(err instanceof Error ? err.message : 'Something went wrong.');
     }
-  };
+  });
+
+  const questionsError = errors.questions?.root?.message ?? errors.questions?.message;
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="card">
-        <label>Quiz title</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="e.g. JavaScript Basics"
-        />
-      </div>
+    <FormProvider {...form}>
+      <form onSubmit={submit} noValidate>
+        <div className="card">
+          <label htmlFor="quiz-title">Quiz title</label>
+          <input
+            id="quiz-title"
+            type="text"
+            placeholder="e.g. JavaScript Basics"
+            aria-invalid={errors.title ? true : undefined}
+            {...register('title')}
+          />
+          {errors.title && <p className="field-error">{errors.title.message}</p>}
+        </div>
 
-      {questions.map((q, i) => (
-        <QuestionEditor
-          key={i}
-          index={i}
-          question={q}
-          onChange={(next) => setQuestions(questions.map((x, j) => (j === i ? next : x)))}
-          onRemove={() => setQuestions(questions.filter((_, j) => j !== i))}
-        />
-      ))}
+        {fields.map((field, i) => (
+          <QuestionEditor key={field.id} index={i} onRemove={() => remove(i)} />
+        ))}
 
-      <div className="row">
-        <button type="button" className="secondary" onClick={() => setQuestions([...questions, emptyQuestion()])}>
-          + Add question
-        </button>
-        <button type="submit" disabled={saving}>
-          {saving ? 'Saving…' : 'Create quiz'}
-        </button>
-      </div>
-      {error && <p className="error">{error}</p>}
-    </form>
+        {questionsError && <p className="error">{questionsError}</p>}
+
+        <div className="row actions">
+          <button type="button" className="secondary" onClick={() => append(emptyQuestion())}>
+            + Add question
+          </button>
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Saving…' : submitLabel}
+          </button>
+        </div>
+        {serverError && <p className="error">{serverError}</p>}
+      </form>
+    </FormProvider>
   );
 }

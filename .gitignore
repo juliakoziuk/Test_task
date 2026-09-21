@@ -2,6 +2,9 @@ node_modules/
 dist/
 .next/
 .env
+.env.*
+!.env.example
 .idea/
 *.log
 *.tsbuildinfo
+next-env.d.ts

@@ -8,7 +8,11 @@
     "start:dev": "nest start --watch",
     "seed": "ts-node src/seed.ts",
     "migrate": "sequelize-cli db:migrate",
-    "migrate:undo": "sequelize-cli db:migrate:undo"
+    "migrate:undo": "sequelize-cli db:migrate:undo",
+    "lint": "eslint \"src/**/*.ts\"",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@nestjs/common": "^10.4.0",
@@ -33,6 +37,11 @@
     "@nestjs/cli": "^10.4.5",
     "@types/node": "^22.0.0",
     "@types/validator": "^13.12.0",
+    "@typescript-eslint/eslint-plugin": "^7.18.0",
+    "@typescript-eslint/parser": "^7.18.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.8",
     "sequelize-cli": "^6.6.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.6.0"

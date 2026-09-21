@@ -1,4 +1,9 @@
-import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Sequelize } from 'sequelize-typescript';
 import { User } from '../users/models/user.model';
@@ -17,29 +22,72 @@ export class QuizzesService {
     private readonly usersService: UsersService,
   ) {}
 
-  async create(dto: CreateQuizDto, userId: number): Promise<Quiz> {
-    await this.usersService.findOne(userId);
+  private assertValidQuestions(dto: CreateQuizDto) {
     dto.questions.forEach((q, i) => {
       const problem = validateCorrectAnswer(q);
       if (problem) throw new BadRequestException(`questions.${i}: ${problem}`);
     });
+  }
+
+  private questionRows(dto: CreateQuizDto, quizId: number) {
+    return dto.questions.map((q, position) => ({
+      quizId,
+      text: q.text,
+      type: q.type,
+      options: q.type === QuestionType.CHECKBOX ? q.options : [],
+      correctAnswer: q.correctAnswer,
+      position,
+    }));
+  }
+
+  async create(dto: CreateQuizDto, userId: number): Promise<Quiz> {
+    await this.usersService.findOne(userId);
+    this.assertValidQuestions(dto);
 
     const quizId = await this.sequelize.transaction(async (transaction) => {
       const quiz = await this.quizModel.create({ title: dto.title, userId }, { transaction });
-      await this.questionModel.bulkCreate(
-        dto.questions.map((q, position) => ({
-          quizId: quiz.id,
-          text: q.text,
-          type: q.type,
-          options: q.type === QuestionType.CHECKBOX ? q.options : [],
-          correctAnswer: q.correctAnswer,
-          position,
-        })),
-        { transaction },
-      );
+      await this.questionModel.bulkCreate(this.questionRows(dto, quiz.id), { transaction });
       return quiz.id;
     });
     return this.findOne(quizId);
+  }
+
+  /** Replaces the title and all questions of one of your own quizzes. */
+  async update(id: number, dto: CreateQuizDto, userId: number): Promise<Quiz> {
+    const quiz = await this.findOne(id);
+    if (quiz.userId !== userId) throw new ForbiddenException('You can only edit your own quizzes');
+    this.assertValidQuestions(dto);
+
+    // Past attempts keep their own snapshot of the questions, so replacing them is safe.
+    await this.sequelize.transaction(async (transaction) => {
+      await quiz.update({ title: dto.title }, { transaction });
+      await this.questionModel.destroy({ where: { quizId: id }, transaction });
+      await this.questionModel.bulkCreate(this.questionRows(dto, id), { transaction });
+    });
+    return this.findOne(id);
+  }
+
+  /** The quiz including correct answers, for its owner only (used by the edit form). */
+  async findOneForEdit(id: number, userId: number) {
+    const quiz = await this.findOne(id);
+    if (quiz.userId !== userId) throw new ForbiddenException('You can only edit your own quizzes');
+    const questions = await this.questionModel.scope('withAnswers').findAll({
+      where: { quizId: id },
+      order: [['position', 'ASC']],
+    });
+    return {
+      id: quiz.id,
+      userId: quiz.userId,
+      title: quiz.title,
+      questions: questions.map((q) => ({
+        id: q.id,
+        text: q.text,
+        type: q.type,
+        options: q.options,
+        position: q.position,
+        correctAnswer: q.correctAnswer,
+      })),
+    };
   }
 
   async findAll(userId?: number) {
@@ -80,7 +128,8 @@ export class QuizzesService {
 
   async remove(id: number, userId: number): Promise<void> {
     const quiz = await this.findOne(id);
-    if (quiz.userId !== userId) throw new ForbiddenException('You can only delete your own quizzes');
+    if (quiz.userId !== userId)
+      throw new ForbiddenException('You can only delete your own quizzes');
     await quiz.destroy();
   }
 }
